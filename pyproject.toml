@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "flypper-sqlalchemy"
+version = "0.1.0"
+description = ""
+authors = ["Nicolas Zermati <nicoolas25@gmail.com>"]
+packages = [
+  { include = "flypper_sqlalchemy" },
+  { include = "README.md" },
+  { include = "LICENSE" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+flypper = { git = "https://github.com/nicoolas25/flypper.git", branch = "main" }
+SQLAlchemy = "^1.3"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+mypy = "^0.910"
+sqlalchemy-stubs = "^0.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
