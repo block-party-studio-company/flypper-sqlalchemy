@@ -1,11 +1,20 @@
 from time import time
-from typing import List, cast
+from typing import List, Optional, cast
 
 from flypper.entities.flag import Flag, FlagData, UnversionedFlagData
 from flypper.storage.abstract import AbstractStorage
 from sqlalchemy import Table
 from sqlalchemy.engine import Engine
+from sqlalchemy.orm.session import Session
 from sqlalchemy.sql import select
+from sqlalchemy.sql.schema import MetaData
+from sqlalchemy import (
+    Table,
+    Column,
+    Integer,
+    String,
+    JSON,
+)
 
 _VERSION_KEY = "version"
 
@@ -14,9 +23,11 @@ class SqlAlchemyStorage(AbstractStorage):
         self,
         flags_table: Table,
         metadata_table: Table,
-        engine: Engine,
+        engine: Optional[Engine] = None,
+        session: Optional[Session] = None,
     ):
         self._engine = engine
+        self._session = session
         self._flags: Table = flags_table
         self._metadata: Table = metadata_table
 
@@ -123,4 +134,26 @@ class SqlAlchemyStorage(AbstractStorage):
 
     @property
     def _connection(self):
-        return self._engine.connect()
+        if self._session:
+            return self._session.connection()
+        elif self._engine:
+            return self._engine.connect()
+        else:
+            raise RuntimeError("No session nor engine was given")
+
+def build_metadata_table(sqla_metadata: MetaData) -> Table:
+    return Table(
+        "flypper_metadata",
+        sqla_metadata,
+        Column("key", String, primary_key=True),
+        Column("value", String, nullable=False),
+    )
+
+def build_flags_table(sqla_metadata: MetaData) -> Table:
+    return Table(
+        "flypper_flags",
+        sqla_metadata,
+        Column("name", String, primary_key=True),
+        Column("version", Integer, nullable=False),
+        Column("data", JSON, nullable=False),
+    )

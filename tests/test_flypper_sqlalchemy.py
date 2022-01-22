@@ -1,33 +1,24 @@
-from flypper_sqlalchemy.storage.sqla import SqlAlchemyStorage
+from sqlalchemy.orm.session import sessionmaker
+from flypper_sqlalchemy.storage.sqla import (
+    SqlAlchemyStorage,
+    build_metadata_table,
+    build_flags_table,
+)
 
 from flypper.entities.flag import UnversionedFlagData
 from sqlalchemy import (
     create_engine,
     MetaData,
-    Table,
-    Column,
-    Integer,
-    String,
-    JSON,
 )
 
 # Setup a test database, in memory
 engine = create_engine('sqlite://')
 metadata = MetaData()
-flypper_metadata = Table(
-    "flypper_metadata",
-    metadata,
-    Column("key", String, primary_key=True),
-    Column("value", String, nullable=False),
-)
-flypper_flags = Table(
-    "flypper_flags",
-    metadata,
-    Column("name", String, primary_key=True),
-    Column("version", Integer, nullable=False),
-    Column("data", JSON, nullable=False),
-)
+flypper_metadata = build_metadata_table(sqla_metadata=metadata)
+flypper_flags = build_flags_table(sqla_metadata=metadata)
 metadata.create_all(engine)
+
+Session = sessionmaker(bind=engine)
 
 def test_empty_storage():
     storage = empty_storage()
@@ -71,7 +62,7 @@ def empty_storage():
         connection.execute(flypper_metadata.delete())
 
     return SqlAlchemyStorage(
-        engine=engine,
+        session=Session(),
         flags_table=flypper_flags,
         metadata_table=flypper_metadata,
     )
