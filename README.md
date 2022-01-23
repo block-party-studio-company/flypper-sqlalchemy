@@ -17,20 +17,17 @@ pip install flypper-sqlalchemy
 Build a storage backend:
 
 ```python
-from flypper_sqlalchemy.storage.sqla import (
-    SqlAlchemyStorage,
-    build_flags_table,
-    build_metadata_table,
-)
+from flypper_sqlalchemy.storage.sqla import SqlAlchemyStorage
 
 # Create tables, make sure they are created, for instance with `create_all()`.
-flypper_flags = build_flags_table(sqla_metadata=metadata)
-flypper_metadata = build_metadata_table(sqla_metadata=metadata)
+SqlAlchemyStorage.build_flags_table(sqla_metadata=metadata)
+SqlAlchemyStorage.build_metadata_table(sqla_metadata=metadata)
 
-storage = SqlAlchemyStorage(
-    flags_table=flags_table,
-    metadata_table=metadata_table,
-    session=session_proxy, # or instead, depending on the use-case: engine=engine,
+storage = SqlAlchemyStorage(session=session_proxy)
+
+# Or instead, depending on the use-case:
+#
+# storage = SqlAlchemyStorage(engine=engine)
 )
 ```
 

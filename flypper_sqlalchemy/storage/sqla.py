@@ -5,6 +5,7 @@ from flypper.entities.flag import Flag, FlagData, UnversionedFlagData
 from flypper.storage.abstract import AbstractStorage
 from sqlalchemy import Table
 from sqlalchemy.engine import Engine
+from sqlalchemy.engine.base import Connection
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql import select
 from sqlalchemy.sql.schema import MetaData
@@ -18,18 +19,29 @@ from sqlalchemy import (
 
 _VERSION_KEY = "version"
 
+class MissingTable(Exception):
+    pass
+
 class SqlAlchemyStorage(AbstractStorage):
+    _flags_table: Optional[Table] = None
+    _metadata_table: Optional[Table] = None
+
     def __init__(
         self,
-        flags_table: Table,
-        metadata_table: Table,
         engine: Optional[Engine] = None,
         session: Optional[Session] = None,
     ):
+        if self.__class__._flags_table is None:
+            raise MissingTable("Use SqlAlchemyStorage.build_flags_table first")
+        if self.__class__._metadata_table is None:
+            raise MissingTable("Use SqlAlchemyStorage.build_metadata_table first")
+        if not engine and not session:
+            raise ValueError("Either engine or session must be provided")
+
         self._engine = engine
         self._session = session
-        self._flags: Table = flags_table
-        self._metadata: Table = metadata_table
+        self._flags: Table = self.__class__._flags_table
+        self._metadata: Table = self.__class__._metadata_table
 
     def list(self, version__gt: int = 0) -> List[Flag]:
         statement = (
@@ -133,27 +145,31 @@ class SqlAlchemyStorage(AbstractStorage):
         })
 
     @property
-    def _connection(self):
+    def _connection(self) -> Connection:
         if self._session:
             return self._session.connection()
         elif self._engine:
             return self._engine.connect()
         else:
-            raise RuntimeError("No session nor engine was given")
+            raise ValueError("No engine nor session found")
 
-def build_metadata_table(sqla_metadata: MetaData) -> Table:
-    return Table(
-        "flypper_metadata",
-        sqla_metadata,
-        Column("key", String, primary_key=True),
-        Column("value", String, nullable=False),
-    )
+    @classmethod
+    def build_metadata_table(cls, sqla_metadata: MetaData) -> Table:
+        cls._metadata_table = Table(
+            "flypper_metadata",
+            sqla_metadata,
+            Column("key", String, primary_key=True),
+            Column("value", String, nullable=False),
+        )
+        return cls._metadata_table
 
-def build_flags_table(sqla_metadata: MetaData) -> Table:
-    return Table(
-        "flypper_flags",
-        sqla_metadata,
-        Column("name", String, primary_key=True),
-        Column("version", Integer, nullable=False),
-        Column("data", JSON, nullable=False),
-    )
+    @classmethod
+    def build_flags_table(cls, sqla_metadata: MetaData) -> Table:
+        cls._flags_table = Table(
+            "flypper_flags",
+            sqla_metadata,
+            Column("name", String, primary_key=True),
+            Column("version", Integer, nullable=False),
+            Column("data", JSON, nullable=False),
+        )
+        return cls._flags_table
