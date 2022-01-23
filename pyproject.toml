@@ -1,10 +1,11 @@
 [tool.poetry]
 name = "flypper-sqlalchemy"
-version = "0.1.1"
+version = "0.1.2"
 description = "Feature flags, with a GUI - SQL Alchemy backend"
 documentation = "https://github.com/nicoolas25/flypper-sqlalchemy"
 repository = "https://github.com/nicoolas25/flypper-sqlalchemy"
 authors = ["Nicolas Zermati <nicoolas25@gmail.com>"]
+readme = "README.md"
 packages = [
   { include = "flypper_sqlalchemy" },
   { include = "README.md" },
