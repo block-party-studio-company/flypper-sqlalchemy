@@ -63,6 +63,33 @@ flypper_context.is_enabled(
 )
 ```
 
+## Q&A
+
+**How to use the ORM layer of SQL-Alchemy?**
+
+We can use the [Hybrid Declarative][hybrid-mapping] mapping capability
+to build a mapped class from flypper's tables:
+
+```python
+from sqlalchemy.ext.declarative import declarative_base
+
+from flypper_sqlalchemy.storage.sqla import SqlAlchemyStorage
+
+Base = declarative_base()
+
+class FlypperFlag(Base):
+    __table__ = SqlAlchemyStorage.build_flags_table(
+        sqla_metadata=Base.metadata,
+    )
+
+class FlypperMetadata(Base):
+    __table__ = SqlAlchemyStorage.build_metadata_table(
+        sqla_metadata=Base.metadata,
+    )
+```
+
+[hybrid-mapping]: https://docs.sqlalchemy.org/en/14/orm/declarative_tables.html#declarative-with-imperative-table-a-k-a-hybrid-declarative
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

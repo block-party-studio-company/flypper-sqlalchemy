@@ -2,11 +2,6 @@ from flypper.wsgi.web_ui import FlypperWebUI
 from sqlalchemy import (
     create_engine,
     MetaData,
-    Table,
-    Column,
-    Integer,
-    String,
-    JSON,
 )
 from werkzeug.serving import run_simple
 
