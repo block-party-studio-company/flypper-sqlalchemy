@@ -99,6 +99,10 @@ class SqlAlchemyStorage(AbstractStorage):
             .where(self._flags.c.name == flag_name)
         )
 
+    def commit(self) -> None:
+        if self._session:
+            self._session.commit()
+
     def _increment_version(self, conn):
         existing_row = conn.execute(
             select([self._metadata.c.key, self._metadata.c.value])
