@@ -159,21 +159,27 @@ class SqlAlchemyStorage(AbstractStorage):
 
     @classmethod
     def build_metadata_table(cls, sqla_metadata: MetaData) -> Table:
-        cls._metadata_table = Table(
-            "flypper_metadata",
-            sqla_metadata,
-            Column("key", String, primary_key=True),
-            Column("value", String, nullable=False),
-        )
+        if "flypper_metadata" in sqla_metadata.tables:
+            cls._metadata_table = sqla_metadata.tables["flypper_metadata"]
+        else:
+            cls._metadata_table = Table(
+                "flypper_metadata",
+                sqla_metadata,
+                Column("key", String, primary_key=True),
+                Column("value", String, nullable=False),
+            )
         return cls._metadata_table
 
     @classmethod
     def build_flags_table(cls, sqla_metadata: MetaData) -> Table:
-        cls._flags_table = Table(
-            "flypper_flags",
-            sqla_metadata,
-            Column("name", String, primary_key=True),
-            Column("version", Integer, nullable=False),
-            Column("data", JSON, nullable=False),
-        )
+        if "flypper_flags" in sqla_metadata.tables:
+            cls._flags_table = sqla_metadata.tables["flypper_flags"]
+        else:
+            cls._flags_table = Table(
+                "flypper_flags",
+                sqla_metadata,
+                Column("name", String, primary_key=True),
+                Column("version", Integer, nullable=False),
+                Column("data", JSON, nullable=False),
+            )
         return cls._flags_table
